@@ -3,92 +3,116 @@
 #include <utility>
 #include <vector>
 #include <algorithm>
+#include <fstream>
+#include <streambuf>
+#include <string>
 
 using namespace std;
 
-set< pair<int, int> > s;
+typedef long long int li;
 
-void check_around(bool **b, int r, int c, int i, int j)
+void check_around(auto &b, const li i, const li j, const li r, const li c)
 {
-	if(!(i >= 0 && i < r && j >= 0 && j < c)) { return; }
+	if(i < 0 || i >= r || j < 0 || j >= c) { return; }
 
-	int x[3] = {i-1, i, i+1}; int y[3] = {j-1, j, j+1};
-	
-	for (int p = 0; p < 3; ++p)
-	{
-		for (int q = 0; q < 3; ++q)
-		{
-			if(x[p] >= 0 && x[p] < r && y[q] >= 0 && y[q] < c) {
-				
-				int t1 = x[p], t2 = y[q];
+	li p[] = { i-1, i, i+1 };
+	li q[] = { j-1, j, j+1 };
 
-				if(s.count(make_pair(t1, t2))) { continue; } else if(b[t1][t2])
-				{
-					s.insert(make_pair(t1, t2)); check_around(b, r, c, t1, t2);
-				}
-			
+	for(li x = 0; x < 3; ++x) {
+		for(li y = 0; y < 3; ++y) {
+			if(p[x] < 0 || p[x] >= r || q[y] < 0 || q[y] >= c || (p[x] == i && q[y] == j)) {
+				continue;
 			}
+			if(b[p[x]][q[y]].first && !b[p[x]][q[y]].second) {
+				b[p[x]][q[y]].second = true;
+				check_around(b, p[x], q[y], r, c);
+			}
+			b[p[x]][q[y]].second = true;
 		}
 	}
 }
 
-int NumberOf_Islands(bool **b, int r, int c)
+li NumberOf_Islands(auto &b, li r, li c)
 {
-	int count = 0;
-	
-	for (int i = 0; i < r; ++i) {
-		
-		for (int j = 0; j < c; ++j) {
-
-			if(s.find(make_pair(i, j)) != s.end()) { continue; } else if(b[i][j])
-			{				
-				count++; s.insert(make_pair(i, j));
-				
-				check_around(b, r, c, i, j);
+	li count = 0;
+	for(li i = 0; i < r; ++i) {
+		for(li j = 0; j < c; ++j) {
+			if(b[i][j].first && !b[i][j].second) {
+				b[i][j].second = true;
+				check_around(b, i, j, r, c);
+				count++;
 			}
+			b[i][j].second = true;
 		}
 	}
 	return count;
 }
 
-int main()
+int main(int argc, char const *argv[])
 {
-	int r, c, temp;
+	bool flag = true;
+
+	fstream in(argv[1], ios::in);
+	if(!in) { cout <<"\n> Error: Input file not found\n"<< endl; flag = false; }
+	streambuf *cinbuf = cin.rdbuf();
+	if(argc == 3 && flag) { cin.rdbuf(in.rdbuf()); } else { in.close(); }
+	
+	if(argc == 3 && flag) {
+		cout <<"\n> Proceeding with IO entered in command arguments"<< endl;
+	} else {
+		cout <<"\n> Proceeding with STD-IO (terminal input and output)"<< endl;
+	}
+	
+	fstream out(argv[2], ios::out);
+	streambuf *coutbuf = cout.rdbuf();
+	if(argc == 3 && flag) { cout.rdbuf(out.rdbuf()); } else { out.close(); }
+
+	li r, c, temp;
 	cout <<"\n> No.of rows and columns of matrix: ";
 	cin >> r >> c;
 
 	if(r <= 0 || c <= 0) { cout <<"\n> Invalid Input\n"<< endl; return 0; }
 
 	cout <<"\n> Values into array:\n";
-	bool **b = new bool*[r];
+
+	vector < vector < pair <bool, bool> > > b(r, vector < pair <bool, bool> > (c, { false, false }));
+
 	cout <<"\n> Columns-> ";
-	for (int i = 0; i < c; ++i) { cout << i+1 <<" "; } cout << endl;
-	for (int i = 0; i < r; ++i)
+	for (li i = 0; i < c; ++i) { cout << i+1 <<" "; } cout << endl;
+	for (li i = 0; i < r; ++i)
 	{
-		b[i] = new bool[c];
 		cout <<"\n> Row["<< i+1 <<"] -> ";
-		for (int j = 0; j < c; ++j)
+		for (li j = 0; j < c; ++j)
 		{
 			cin >> temp;
 			if(temp < 0 || temp > 1)
 			{
 				cout <<"\n> Invalid Input\n"<< endl; return 0;
 
-			} else { b[i][j] = temp; }
+			} else { b[i][j].first = temp; }
 		}
 	}
 
 	cout <<"\n> The Matrix\n"<< endl;
-	for (int i = 0; i < r; ++i)
+	for (li i = 0; i < r; ++i)
 	{
-		for (int j = 0; j < c; ++j) {
-			cout <<" "<< b[i][j];
+		for (li j = 0; j < c; ++j) {
+			cout <<" "<< b[i][j].first;
 		} cout << endl;
 	}
 
-	int n = NumberOf_Islands(b, r, c);
-	cout <<"\n> No.of islands: "<< n << endl;
+	li n = NumberOf_Islands(b, r, c);
 
-	cout << endl;
+	if(argc == 3) { cin.rdbuf(cinbuf); cout.rdbuf(coutbuf); }
+
+	cout <<"\n> No.of islands: "<< n << endl << endl;
+
+	if(argc == 3 && flag) {
+		in.close(); out.close();
+		fstream fobj(argv[2], ios::out);
+		fobj << n << endl;
+		fobj.close();
+	}
+
 	return 0;
 }
