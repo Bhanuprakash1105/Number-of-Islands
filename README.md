@@ -1,4 +1,4 @@
-# Number-of-Islands-Goldman-Sachs
+# Number-of-Islands
 #### Given a boolean 2D matrix, find the number of islands
 1. Use the "Question.jpg" image for understanding the question.
 2. The programme is written in C++ language, compile the Code.cpp file using g++ compiler (preferred).
