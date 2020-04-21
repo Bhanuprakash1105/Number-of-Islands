@@ -9,4 +9,4 @@
 
 #### Time Complexity = O(Rows * Columns)
 
-#### Space Complexity = O(Rows + Columns)
+#### Space Complexity = O(Rows * Columns)
